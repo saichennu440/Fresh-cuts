@@ -121,7 +121,7 @@ const CheckoutPage: React.FC = () => {
   };
 
   async function createRazorpayOrder(orderId: number): Promise<string> {
-    const resp = await fetch('https://fresh-cuts.onrender.com/...'
+    const resp = await fetch('https://fresh-cuts.onrender.com/api/create-razorpay-order'
 , {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

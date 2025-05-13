@@ -40,7 +40,7 @@ const supabase = createClient(
 // Create a Razorpay order
 // POST /create-razorpay-order
 // -------------------
-app.post('/create-razorpay-order', async (req, res) => {
+app.post('/api/create-razorpay-order', async (req, res) => {
   try {
     const { supabaseOrderId, amount } = req.body;
     const order = await razorpay.orders.create({
