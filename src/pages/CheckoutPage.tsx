@@ -121,7 +121,8 @@ const CheckoutPage: React.FC = () => {
   };
 
   async function createRazorpayOrder(orderId: number): Promise<string> {
-    const resp = await fetch('http://localhost:4000/create-razorpay-order', {
+    const resp = await fetch('https://fresh-cuts.onrender.com/...'
+, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ supabaseOrderId: orderId, amount: cartTotal }),
@@ -165,7 +166,7 @@ const CheckoutPage: React.FC = () => {
             // 3. Notify via WhatsApp (best-effort)
             try {
               const resp = await fetch(
-                'http://localhost:4000/api/notify-whatsapp',
+                'https://fresh-cuts.onrender.com/api/notify-whatsapp',
                 {
                   method: 'POST',
                   headers: { 'Content-Type': 'application/json' },

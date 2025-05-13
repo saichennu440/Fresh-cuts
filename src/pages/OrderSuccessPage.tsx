@@ -41,7 +41,7 @@ const OrderSuccessPage: React.FC = () => {
 
         // 2) Send to your Express/Twilio endpoint:
         const res = await fetch(
-          'http://localhost:4000/api/notify-whatsapp',
+          'https://fresh-cuts.onrender.com/api/notify-whatsapp',
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
