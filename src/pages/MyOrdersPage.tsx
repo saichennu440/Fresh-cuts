@@ -135,6 +135,8 @@ const MyOrdersPage: React.FC = () => {
   useEffect(() => {
     if (!user && !phoneVerified) return;
 
+    fetchOrders(phoneVerified ? phoneInput : undefined);
+
     const subscription = supabase
       .channel('orders-channel')
       .on(

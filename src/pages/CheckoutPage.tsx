@@ -12,29 +12,43 @@ interface CheckoutForm {
   name: string;
   phone: string;
   address: string;
+  landmark: string;
+  city: string;
+  state: 'Andhra Pradesh' | 'Telangana';
+  pincode: string;
+  country: string;
+  addressType: 'home' | 'work' | 'other';
   email: string;
 }
 
-const CheckoutPage: React.FC = () => {
+export const CheckoutPage: React.FC = () => {
   const [form, setForm] = useState<CheckoutForm>({
     name: '',
     phone: '',
     address: '',
+    landmark: '',
+    city: '',
+    state: 'Andhra Pradesh',
+    pincode: '',
+    country: 'India',
+    addressType: 'home',
     email: '',
   });
   const [formErrors, setFormErrors] = useState<Partial<CheckoutForm>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
   const { cart, clearCart } = useCart();
   const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  // Compute cartTotal safely as a number
+  // Total in INR
   const cartTotal = cart.reduce((sum, item) => {
     const priceNum = parseFloat(item.product.price as any) || 0;
     const qtyNum = parseInt(item.quantity as any, 10) || 0;
     return sum + priceNum * qtyNum;
   }, 0);
+  const itemCount = cart.reduce((c, i) => c + (parseInt(i.quantity as any, 10) || 0), 0);
 
   useEffect(() => {
     document.title = 'Checkout | FreshCuts';
@@ -45,91 +59,77 @@ const CheckoutPage: React.FC = () => {
       return;
     }
     if (user?.email) {
-      setForm((prev) => ({ ...prev, email: user.email }));
+      setForm(f => ({ ...f, email: user.email }));
     }
   }, [cart, navigate, showToast, user]);
 
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    setForm(f => ({ ...f, [name]: value }));
     if (formErrors[name as keyof CheckoutForm]) {
-      setFormErrors((prev) => ({ ...prev, [name]: undefined }));
+      setFormErrors(f => ({ ...f, [name]: undefined }));
     }
   };
 
   const validateForm = (): boolean => {
     const errors: Partial<CheckoutForm> = {};
-    let isValid = true;
-    if (!form.name.trim()) {
-      errors.name = 'Name is required';
-      isValid = false;
-    }
-    if (!form.phone.trim()) {
-      errors.phone = 'Phone number is required';
-      isValid = false;
-    } else if (!/^\d{10}$/.test(form.phone.trim())) {
-      errors.phone = 'Enter a valid 10-digit phone number';
-      isValid = false;
-    }
-    if (!form.address.trim()) {
-      errors.address = 'Address is required';
-      isValid = false;
-    }
-    if (!form.email.trim()) {
-      errors.email = 'Email is required';
-      isValid = false;
-    } else if (!/\S+@\S+\.\S+/.test(form.email)) {
-      errors.email = 'Enter a valid email';
-      isValid = false;
-    }
+    let ok = true;
+    if (!form.name.trim()) { errors.name = 'Name is required'; ok = false; }
+    if (!/^\d{10}$/.test(form.phone.trim())) { errors.phone = 'Enter a valid 10-digit phone'; ok = false; }
+    if (!form.address.trim()) { errors.address = 'Address is required'; ok = false; }
+    if (!form.city.trim())    { errors.city = 'City is required'; ok = false; }
+    if (!form.state.trim())   { errors.state = 'State is required'; ok = false; }
+    if (!/^\d{5,6}$/.test(form.pincode.trim())) { errors.pincode = 'Enter valid PIN code'; ok = false; }
+    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) { errors.email = 'Valid email is required'; ok = false; }
     setFormErrors(errors);
-    return isValid;
+    return ok;
   };
 
   const createOrder = async (): Promise<number> => {
     if (!user) throw new Error('Not authenticated');
-
+    // 1) insert order
     const { data: order, error: orderError } = await supabase
       .from('orders')
       .insert({
         customer_name: form.name,
         phone: form.phone,
-        address: form.address,
+        address: `${form.address}, ${form.landmark ? form.landmark + ', ' : ''}${form.city}, ${form.state} ${form.pincode}, ${form.country}`,
+        address_type: form.addressType,
         total_amount: cartTotal,
         status: 'Pending',
         user_id: user.id,
       })
       .select('id')
       .single();
-
     if (orderError) throw orderError;
 
-    const items = cart.map((item) => ({
+    // 2) insert items
+    const items = cart.map(item => ({
       order_id: order.id,
       product_id: item.product.id,
       quantity: parseInt(item.quantity as any, 10) || 0,
       price: parseFloat(item.product.price as any) || 0,
     }));
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(items);
+    const { error: itemsError } = await supabase.from('order_items').insert(items);
     if (itemsError) throw itemsError;
 
     return order.id;
   };
 
   async function createRazorpayOrder(orderId: number): Promise<string> {
-    const resp = await fetch('https://fresh-cuts.onrender.com/api/create-razorpay-order'
-, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ supabaseOrderId: orderId, amount: cartTotal }),
-    });
+    const resp = await fetch(
+      'https://fresh-cuts.onrender.com/api/create-razorpay-order',
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ supabaseOrderId: orderId, amount: cartTotal }),
+      }
+    );
     if (!resp.ok) {
-      const errText = await resp.text();
-      throw new Error(`Failed to create Razorpay order: ${errText}`);
+      const text = await resp.text();
+      throw new Error(`Failed to create Razorpay order: ${text}`);
     }
     const { razorpayOrderId } = await resp.json();
     return razorpayOrderId;
@@ -139,12 +139,12 @@ const CheckoutPage: React.FC = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
+    setIsSubmitting(true);
     try {
-      setIsSubmitting(true);
       const orderId = await createOrder();
       const razorpayOrderId = await createRazorpayOrder(orderId);
 
-      initializeRazorpay(
+       initializeRazorpay(
         {
           orderId: razorpayOrderId,
           amount: cartTotal,
@@ -217,114 +217,141 @@ const CheckoutPage: React.FC = () => {
     <div className="container mx-auto px-4 py-24">
       <h1 className="text-3xl font-bold mb-8">Checkout</h1>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Form */}
+        {/* Shipping */}
         <div className="lg:col-span-2 bg-white rounded-lg shadow-md p-6">
-          <h2 className="text-xl font-semibold mb-6">
-            Shipping Information
-          </h2>
+          <h2 className="text-xl font-semibold mb-6">Shipping Information</h2>
           <form onSubmit={handleSubmit}>
-            {/* Name & Phone */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-              <div>
-                <label className="block mb-2">Full Name *</label>
-                <input
-                  name="name"
-                  value={form.name}
-                  onChange={handleChange}
-                  className={`w-full p-3 border rounded-md ${
-                    formErrors.name
-                      ? 'border-red-500'
-                      : 'border-gray-300'
-                  }`}
-                  placeholder="Your full name"
-                />
-                {formErrors.name && (
-                  <p className="text-red-500 text-sm">
-                    {formErrors.name}
-                  </p>
-                )}
-              </div>
-              <div>
-                <label className="block mb-2">
-                  Phone Number *
-                </label>
-                <input
-                  name="phone"
-                  value={form.phone}
-                  onChange={handleChange}
-                  className={`w-full p-3 border rounded-md ${
-                    formErrors.phone
-                      ? 'border-red-500'
-                      : 'border-gray-300'
-                  }`}
-                  placeholder="10-digit mobile"
-                />
-                {formErrors.phone && (
-                  <p className="text-red-500 text-sm">
-                    {formErrors.phone}
-                  </p>
-                )}
-              </div>
+
+            {/* Name, Email, Phone */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {[
+                { label: 'Full Name*', name: 'name', type: 'text' },
+                { label: 'Email*', name: 'email', type: 'email' },
+                { label: 'Phone*', name: 'phone', type: 'tel' },
+              ].map(fld => (
+                <div key={fld.name}>
+                  <label className="block mb-2">{fld.label}</label>
+                  <input
+                    name={fld.name}
+                    type={fld.type}
+                    value={(form as any)[fld.name]}
+                    onChange={handleChange}
+                    className={`w-full p-3 border rounded-md ${formErrors[fld.name as keyof CheckoutForm] ? 'border-red-500' : 'border-gray-300'}`}
+                    required
+                  />
+                  {formErrors[fld.name as keyof CheckoutForm] && (
+                    <p className="text-red-500 text-sm">{formErrors[fld.name as keyof CheckoutForm]}</p>
+                  )}
+                </div>
+              ))}
             </div>
-            {/* Email */}
+
+            {/* Address Type */}
             <div className="mb-6">
-              <label className="block mb-2">Email Address *</label>
-              <input
-                name="email"
-                type="email"
-                value={form.email}
+              <label className="block mb-2">Address Type</label>
+              <select
+                name="addressType"
+                value={form.addressType}
                 onChange={handleChange}
-                className={`w-full p-3 border rounded-md ${
-                  formErrors.email
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                }`}
-                placeholder="Your email"
-              />
-              {formErrors.email && (
-                <p className="text-red-500 text-sm">
-                  {formErrors.email}
-                </p>
-              )}
+                className="w-full p-3 border border-gray-300 rounded-md"
+              >
+                <option value="home">Home</option>
+                <option value="work">Work</option>
+                <option value="other">Other</option>
+              </select>
             </div>
-            {/* Address */}
+
+            {/* Street & Landmark */}
             <div className="mb-6">
-              <label className="block mb-2">
-                Delivery Address *
-              </label>
-              <textarea
+              <label className="block mb-2">Street Address *</label>
+              <input
                 name="address"
-                rows={3}
                 value={form.address}
                 onChange={handleChange}
-                className={`w-full p-3 border rounded-md ${
-                  formErrors.address
-                    ? 'border-red-500'
-                    : 'border-gray-300'
-                }`}
-                placeholder="Complete address"
+                className={`w-full p-3 border rounded-md ${formErrors.address ? 'border-red-500' : 'border-gray-300'}`}
+                placeholder="Street, building, etc."
+                required
               />
-              {formErrors.address && (
-                <p className="text-red-500 text-sm">
-                  {formErrors.address}
-                </p>
-              )}
+              {formErrors.address && <p className="text-red-500 text-sm">{formErrors.address}</p>}
             </div>
-            {/* Info */}
+            <div className="mb-6">
+              <label className="block mb-2">Landmark</label>
+              <input
+                name="landmark"
+                value={form.landmark}
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-md"
+                placeholder="Nearby landmark (optional)"
+              />
+            </div>
+
+            {/* City / State / PIN */}
+ <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <div>
+                <label className="block mb-2">City*</label>
+                <input
+                  name="city"
+                  value={form.city}
+                  onChange={handleChange}
+                  className={`w-full p-3 border rounded-md ${formErrors.city ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {formErrors.city && <p className="text-red-500 text-sm">{formErrors.city}</p>}
+              </div>
+              <div>
+                <label className="block mb-2">State*</label>
+                <select
+                  name="state"
+                  value={form.state}
+                  onChange={handleChange}
+                  className={`w-full p-3 border rounded-md ${formErrors.state ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                >
+                  <option value="Andhra Pradesh">Andhra Pradesh</option>
+                  <option value="Telangana">Telangana</option>
+                </select>
+                {formErrors.state && <p className="text-red-500 text-sm">{formErrors.state}</p>}
+              </div>
+              <div>
+                <label className="block mb-2">PIN Code*</label>
+                <input
+                  name="pincode"
+                  value={form.pincode}
+                  onChange={handleChange}
+                  className={`w-full p-3 border rounded-md ${formErrors.pincode ? 'border-red-500' : 'border-gray-300'}`}
+                  required
+                />
+                {formErrors.pincode && <p className="text-red-500 text-sm">{formErrors.pincode}</p>}
+              </div>
+
+            
+            </div>
+
+            {/* Country */}
+            <div className="mb-6">
+              <label className="block mb-2">Country</label>
+              <input
+                name="country"
+                value={form.country}
+                onChange={handleChange}
+                className="w-full p-3 border border-gray-300 rounded-md"
+              />
+            </div>
+
+            {/* Info note */}
             <div className="bg-gray-50 p-4 rounded-md flex items-start mb-6">
               <Info size={20} className="text-blue-500 mr-3" />
               <p className="text-gray-700 text-sm">
                 Delivered in 24h. Our courier will call before delivery.
               </p>
             </div>
+
             {/* Submit */}
             <button
               type="submit"
               disabled={isSubmitting}
               className={`w-full py-3 rounded-md text-white font-semibold ${
-                isSubmitting
-                  ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700'
+                isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700'
               }`}
             >
               {isSubmitting ? (
@@ -339,6 +366,8 @@ const CheckoutPage: React.FC = () => {
           </form>
         </div>
 
+        {/* Summary */}
+      
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
           <h2 className="text-xl font-semibold mb-6">
@@ -400,6 +429,8 @@ const CheckoutPage: React.FC = () => {
               </span>
             </div>
           </div>
+
+        
           <div className="mt-6 bg-gray-50 p-4 rounded-md text-sm text-gray-600">
             Payment via Razorpay. All cards & UPI accepted.
           </div>

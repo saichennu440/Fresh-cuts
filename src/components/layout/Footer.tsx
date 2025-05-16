@@ -71,27 +71,26 @@ const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Information */}
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Information</h3>
+           <div>
+            <h3 className="text-xl font-semibold mb-4">Information</h3>
             <ul className="space-y-2">
               <li>
-                <Link to="#" className="text-gray-300 hover:text-white transition">
+                <Link to="/about" className="text-gray-400 hover:text-white transition-colors">
                   About Us
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-300 hover:text-white transition">
+                <Link to="/privacy-policy" className="text-gray-400 hover:text-white transition-colors">
                   Privacy Policy
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-300 hover:text-white transition">
+                <Link to="/terms" className="text-gray-400 hover:text-white transition-colors">
                   Terms & Conditions
                 </Link>
               </li>
               <li>
-                <Link to="#" className="text-gray-300 hover:text-white transition">
+                <Link to="/shipping-policy" className="text-gray-400 hover:text-white transition-colors">
                   Shipping Policy
                 </Link>
               </li>

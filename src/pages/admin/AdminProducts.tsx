@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import { useToast } from '../../contexts/ToastContext';
-import { Plus, Edit2, Trash2, Search, X, Check } from 'lucide-react';
+import { Plus, Edit2, Trash2, Search, X, Check, UploadCloud } from 'lucide-react';
 import { Database } from '../../utils/database.types';
 
 type Product = Database['public']['Tables']['products']['Row'];
@@ -34,7 +34,7 @@ const AdminProducts: React.FC = () => {
   const [showForm, setShowForm] = useState(false);
   const [formErrors, setFormErrors] = useState<Partial<ProductFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [imagePlaceholder, setImagePlaceholder] = useState('https://via.placeholder.com/300x300');
+  const [imagePlaceholder, setImagePlaceholder] = useState('https://placehold.co/300x300');
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -93,37 +93,71 @@ const AdminProducts: React.FC = () => {
   };
 
   const validateForm = (): boolean => {
-    const errors: Partial<ProductFormData> = {};
-    let isValid = true;
+    // at top of validateForm()
 
-    if (!formData.name.trim()) {
-      errors.name = 'Product name is required';
-      isValid = false;
-    }
+    
+const name = formData.name?.trim() ?? ''
+const desc = formData.description?.trim() ?? ''
+//const img  = formData.image_url?.trim() ?? ''
+const dec = formData.description?.trim() ?? ''
+let isValid = true
+const errors: Partial<ProductFormData> = {}
 
-    if (!formData.description.trim()) {
-      errors.description = 'Product description is required';
-      isValid = false;
-    }
+if (!name) {
+  errors.name = 'Product name is required'
+  isValid = false
+}
 
-    if (formData.price <= 0) {
-      errors.price = 'Price must be greater than 0';
-      isValid = false;
-    }
+if (!desc) {
+  errors.description = 'Product description is required'
+  isValid = false
+}
 
-    if (!formData.category) {
-      errors.category = 'Category is required';
-      isValid = false;
-    }
+if(!dec){
+  errors.description = 'Product description is required'
+  isValid = false
+}
 
-    if (!formData.image_url.trim()) {
-      errors.image_url = 'Image URL is required';
-      isValid = false;
-    }
 
     setFormErrors(errors);
     return isValid;
   };
+
+
+// ===== after validateForm =====
+
+ // --- NEW: upload file to Supabase Storage & set image_url ---
+ const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+   const file = e.target.files?.[0];
+   if (!file) return;
+   const fileExt = file.name.split('.').pop();
+   const fileName = `${Math.random().toString(36).substr(2, 8)}.${fileExt}`;
+   const filePath = `uploads/${fileName}`;
+   try {
+     showToast('Uploading image...', 'info');
+     const { error: uploadError } = await supabase.storage
+       .from('product-images')
+       .upload(`uploads/${fileName}`,   // file path within bucket
+          file,                    // the File object
+          { upsert: true }         // allow overwrite if same path
+  );
+     if (uploadError) throw uploadError;
+
+     const { data, error: urlError } = supabase
+       .storage
+       .from('product-images')
+       .getPublicUrl(filePath);
+     if (urlError) throw urlError;
+     const publicURL = data.publicUrl;
+     setFormData(prev => ({ ...prev, image_url: publicURL }));
+     setImagePlaceholder(publicURL);
+     showToast('Image uploaded!', 'success');
+   } catch (err: any) {
+     console.error('Upload error:', err);
+     showToast('Image upload failed', 'error');
+   }
+ };
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -219,7 +253,7 @@ const AdminProducts: React.FC = () => {
     setFormErrors({});
     setIsEditing(false);
     setShowForm(false);
-    setImagePlaceholder('https://via.placeholder.com/300x300');
+    setImagePlaceholder('https://placehold.co/300x300');
   };
 
   // Filter products based on search
@@ -270,7 +304,7 @@ const AdminProducts: React.FC = () => {
                   type="text"
                   id="name"
                   name="name"
-                  value={formData.name}
+                  value={formData.name ?? ''}
                   onChange={handleChange}
                   className={`w-full p-3 border rounded-md focus:ring focus:ring-primary-200 ${
                     formErrors.name ? 'border-red-500' : 'border-gray-300'
@@ -290,7 +324,7 @@ const AdminProducts: React.FC = () => {
                   id="description"
                   name="description"
                   rows={4}
-                  value={formData.description}
+                  value={formData.description ?? ''}
                   onChange={handleChange}
                   className={`w-full p-3 border rounded-md focus:ring focus:ring-primary-200 ${
                     formErrors.description ? 'border-red-500' : 'border-gray-300'
@@ -313,7 +347,7 @@ const AdminProducts: React.FC = () => {
                     name="price"
                     step="0.01"
                     min="0"
-                    value={formData.price}
+                    value={formData.price ?? ''}
                     onChange={handleChange}
                     className={`w-full p-3 border rounded-md focus:ring focus:ring-primary-200 ${
                       formErrors.price ? 'border-red-500' : 'border-gray-300'
@@ -321,7 +355,7 @@ const AdminProducts: React.FC = () => {
                     placeholder="0.00"
                   />
                   {formErrors.price && (
-                    <p className="text-red-500 text-sm mt-1">{formErrors.price}</p>
+                    <p className="text-red-500 text-sm mt-1">{formErrors.price ?? ''}</p>
                   )}
                 </div>
                 
@@ -332,7 +366,7 @@ const AdminProducts: React.FC = () => {
                   <select
                     id="category"
                     name="category"
-                    value={formData.category}
+                    value={formData.category ?? ''} 
                     onChange={handleChange}
                     className={`w-full p-3 border rounded-md focus:ring focus:ring-primary-200 ${
                       formErrors.category ? 'border-red-500' : 'border-gray-300'
@@ -358,10 +392,10 @@ const AdminProducts: React.FC = () => {
                   type="text"
                   id="image_url"
                   name="image_url"
-                  value={formData.image_url}
+                  value={formData.image_url ?? ''}
                   onChange={(e) => {
                     handleChange(e);
-                    setImagePlaceholder(e.target.value || 'https://via.placeholder.com/300x300');
+                    setImagePlaceholder(e.target.value || 'https://placehold.co/300x300');
                   }}
                   className={`w-full p-3 border rounded-md focus:ring focus:ring-primary-200 ${
                     formErrors.image_url ? 'border-red-500' : 'border-gray-300'
@@ -371,6 +405,18 @@ const AdminProducts: React.FC = () => {
                 {formErrors.image_url && (
                   <p className="text-red-500 text-sm mt-1">{formErrors.image_url}</p>
                 )}
+
+               <label className="inline-flex items-center px-4 py-2 bg-gray-100 border rounded-md cursor-pointer hover:bg-gray-200">
+               <UploadCloud size={18} className="mr-2" />
+                <span>Upload</span>
+                <input
+             type="file"
+           accept="image/*"
+       className="hidden"
+       onChange={handleFileChange}
+    />
+  </label>
+
               </div>
               
               <div className="flex items-center">
@@ -401,7 +447,7 @@ const AdminProducts: React.FC = () => {
                   alt="Product Preview"
                   className="w-full h-48 object-cover rounded-md"
                   onError={(e) => {
-                    e.currentTarget.src = 'https://via.placeholder.com/300x300';
+                    e.currentTarget.src = 'https://placehold.co/300x300';
                   }}
                 />
               </div>
@@ -498,10 +544,10 @@ const AdminProducts: React.FC = () => {
                         <div className="h-10 w-10 flex-shrink-0">
                           <img
                             className="h-10 w-10 rounded-md object-cover"
-                            src={product.image_url || 'https://via.placeholder.com/50'}
+                            src={product.image_url || 'https://placehold.co/50'}
                             alt={product.name}
                             onError={(e) => {
-                              e.currentTarget.src = 'https://via.placeholder.com/50';
+                              e.currentTarget.src = 'https://placehold.co/50';
                             }}
                           />
                         </div>

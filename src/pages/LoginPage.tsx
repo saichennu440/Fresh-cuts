@@ -91,9 +91,11 @@ const LoginPage: React.FC = () => {
                 <label htmlFor="password" className="block text-gray-700">
                   Password
                 </label>
-                <a href="#" className="text-sm text-primary-600 hover:text-primary-800">
-                  Forgot password?
-                </a>
+                
+                <Link to="/forgot-password"
+              className="text-sm text-primary-600 hover:text-primary-800"> Forgot password?
+              </Link>
+
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">

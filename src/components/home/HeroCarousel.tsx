@@ -11,26 +11,35 @@ import 'swiper/css/pagination';
 const carouselItems = [
   {
     id: 1,
+    image: '/images/hero-bvrm1.jpg',
+    title: 'Our farms located at Bhimavaram',
+    description: 'Fresh meat from the City of destiny.',
+    buttonLink: '/products',
+    buttonText: 'Shop Now',
+  },
+{
+  id: 2,
     image: 'https://images.pexels.com/photos/1025804/pexels-photo-1025804.jpeg',
     title: 'Premium Quality Raw Meat',
     description: 'Ethically sourced and expertly butchered for the finest quality.',
     buttonLink: '/products',
     buttonText: 'Shop Now',
   },
+
   {
-    id: 2,
-    image: 'https://images.pexels.com/photos/953131/pexels-photo-953131.jpeg',
+    id: 3,
+    image: '/images/hero-pickels.jpeg',
     title: 'Homemade Pickles',
     description: 'Traditional recipes with a modern twist. The perfect pairing.',
     buttonLink: '/pickles',
     buttonText: 'Explore',
   },
   {
-    id: 3,
+    id: 4,
     image: 'https://images.pexels.com/photos/1639559/pexels-photo-1639559.jpeg',
     title: 'Fast & Fresh Delivery',
     description: 'We deliver within hours to ensure maximum freshness.',
-    buttonLink: '/products',
+    buttonLink: '/terms',
     buttonText: 'Learn More',
   },
 ];
@@ -44,7 +53,7 @@ const HeroCarousel: React.FC = () => {
         pagination={{ clickable: true }}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
         loop={true}
-        className="h-[70vh] md:h-[80vh]"
+        className="h-[70vh] md:h-[90vh]"
       >
         {carouselItems.map((item) => (
           <SwiperSlide key={item.id}>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../../utils/supabase';
 import { useToast } from '../../contexts/ToastContext';
 import { Search, ChevronDown, ChevronUp, Phone, Mail, MapPin } from 'lucide-react';
-import { Database } from '../../utils/database.types';
+//import { Database } from '../../utils/database.types';
 
 interface OrderItem {
   id: string;
@@ -26,7 +26,7 @@ interface Order {
   total_amount: number;
   status: string;
   payment_id: string | null;
-  items: OrderItem[];
+  order_items: OrderItem[];
 }
 
 const orderStatuses = [
@@ -72,7 +72,7 @@ const AdminOrders: React.FC = () => {
       const search = searchTerm.toLowerCase();
       result = result.filter(
         (order) =>
-          order.id.toLowerCase().includes(search) ||
+          String(order.id).toLowerCase().includes(search) ||
           order.customer_name.toLowerCase().includes(search) ||
           order.phone.includes(search)
       );
@@ -102,7 +102,19 @@ const AdminOrders: React.FC = () => {
       
       const { data, error } = await supabase
         .from('orders')
-        .select('*, items:order_items(*, product:products(name, image_url, category))')
+        .select(`
+    *,
+    order_items (
+      id,
+      quantity,
+      price,
+      product:products (
+        name,
+        image_url,
+        category
+      )
+    )
+  `)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -239,6 +251,7 @@ const AdminOrders: React.FC = () => {
           </div>
         ) : (
           <div className="overflow-x-auto">
+            <div className="table-responsive">
             <table className="w-full">
               <thead>
                 <tr className="bg-gray-50">
@@ -419,6 +432,7 @@ const AdminOrders: React.FC = () => {
                           {/* Order Items */}
                           <h3 className="text-sm font-semibold text-gray-700 mb-2">Order Items</h3>
                           <div className="bg-white rounded-md shadow-sm overflow-hidden">
+                            <div className="table-responsive">
                             <table className="min-w-full divide-y divide-gray-200">
                               <thead className="bg-gray-50">
                                 <tr>
@@ -437,7 +451,7 @@ const AdminOrders: React.FC = () => {
                                 </tr>
                               </thead>
                               <tbody className="divide-y divide-gray-200">
-                                {order.items.map((item) => (
+                                {order.order_items.map((item) => (
                                   <tr key={item.id}>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                       <div className="flex items-center">
@@ -474,6 +488,7 @@ const AdminOrders: React.FC = () => {
                                 ))}
                               </tbody>
                             </table>
+                            </div>
                           </div>
                         </td>
                       </tr>
@@ -482,6 +497,7 @@ const AdminOrders: React.FC = () => {
                 ))}
               </tbody>
             </table>
+            </div>
           </div>
         )}
       </div>

@@ -1,5 +1,5 @@
 // src/App.tsx
-import React from 'react';
+//import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 // Layout
@@ -19,7 +19,12 @@ import MyOrdersPage from './pages/MyOrdersPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
-
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
+import AboutPage from './pages/AboutPage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import TermsPage from './pages/TermsPage';
+import ShippingPolicyPage from './pages/ShippingPolicyPage';
 // Admin Pages
 import AdminLayout from './components/layout/AdminLayout';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -31,6 +36,12 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { CartProvider } from './contexts/CartContext';
 import { WishlistProvider } from './contexts/WishlistContext';
 import { ToastProvider } from './contexts/ToastContext';
+import useScrollToTop from './hooks/useScrollToTop';
+
+const ScrollToTop: React.FC = () => {
+  useScrollToTop();
+  return null;
+};
 
 function App() {
   return (
@@ -39,6 +50,7 @@ function App() {
         <CartProvider>
           <WishlistProvider>
             <Router>
+              <ScrollToTop />
               <AppRoutes />
             </Router>
           </WishlistProvider>
@@ -69,6 +81,12 @@ function AppRoutes() {
         <Route path="my-orders" element={<MyOrdersPage />} />
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
+         <Route path="/about" element={<AboutPage />} />
+         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
+         <Route path="/terms" element={<TermsPage />} />
+         <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
       </Route>
 
       {/* Admin Routes – guarded */}
