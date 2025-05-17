@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useToast } from '../contexts/ToastContext';
 
 const CartPage: React.FC = () => {
-  const { cart, cartTotal, removeFromCart, updateQuantity, loading } = useCart();
+  const { cart,  removeFromCart, updateQuantity, loading } = useCart();
   const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -57,6 +57,11 @@ const CartPage: React.FC = () => {
     );
   }
 
+  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const shippingTotal = cart.reduce((sum, item) => sum + (item.product.shipping_price || 0) * item.quantity, 0);
+  const packingTotal = cart.reduce((sum, item) => sum + (item.product.packing_price || 0) * item.quantity, 0);
+  const grandTotal = subtotal + shippingTotal + packingTotal;
+
   return (
     <div className="container mx-auto px-4 py-24">
       <h1 className="text-3xl font-bold mb-8">Your Cart</h1>
@@ -88,7 +93,7 @@ const CartPage: React.FC = () => {
                 
                 <div className="divide-y">
                   {cart.map((item) => (
-                    <div key={item.id} className="py-6 flex flex-col sm:flex-row">
+                    <div key={item.product_id} className="py-6 flex flex-col sm:flex-row">
                       <div className="flex-shrink-0 sm:mr-6 mb-4 sm:mb-0">
                         <img
                           src={item.product.image_url || 'https://via.placeholder.com/150'}
@@ -108,6 +113,12 @@ const CartPage: React.FC = () => {
                         </p>
                         <p className="text-xl font-bold mb-4">
                           ₹{item.product.price.toFixed(2)}
+                        </p>
+                         <p className="text-gray-600 text-sm mb-1">
+                          Shipping: ₹{(item.product.shipping_price || 0).toFixed(2)}
+                        </p>
+                        <p className="text-gray-600 text-sm mb-4">
+                          Packing: ₹{(item.product.packing_price || 0).toFixed(2)}
                         </p>
                         <div className="flex items-center justify-between">
                           <div className="flex items-center border border-gray-300 rounded-md">
@@ -149,15 +160,19 @@ const CartPage: React.FC = () => {
               <div className="space-y-4">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-medium">₹{cartTotal.toFixed(2)}</span>
+                  <span className="font-medium">₹{subtotal.toFixed(2)}</span>
+                </div>
+                 <div className="flex justify-between">
+                  <span className="text-gray-600">Shipping Total</span>
+                  <span className="font-medium">₹{shippingTotal.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Shipping</span>
-                  <span className="font-medium">Free</span>
+                  <span className="text-gray-600">Packing Total</span>
+                  <span className="font-medium">₹{packingTotal.toFixed(2)}</span>
                 </div>
                 <div className="border-t pt-4 flex justify-between">
                   <span className="text-gray-800 font-semibold">Total</span>
-                  <span className="text-xl font-bold">₹{cartTotal.toFixed(2)}</span>
+                  <span className="text-xl font-bold">₹{grandTotal.toFixed(2)}</span>
                 </div>
               </div>
               

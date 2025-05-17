@@ -150,7 +150,7 @@ const Navbar: React.FC = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={toggleMenu}
-              className="md:hidden text-gray-700 hover:text-primary-600"
+              className="md:hidden text-gray-700 hover:text-red-800"
             >
               {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>

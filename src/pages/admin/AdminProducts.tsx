@@ -14,6 +14,9 @@ interface ProductFormData {
   category: string;
   image_url: string;
   is_featured: boolean;
+  shipping_price: number;
+  packing_price: number;
+  free_packing_pincodes: string[];
 }
 
 const initialFormData: ProductFormData = {
@@ -23,6 +26,9 @@ const initialFormData: ProductFormData = {
   category: 'meat',
   image_url: '',
   is_featured: false,
+   shipping_price: 0,
+  packing_price: 0,
+  free_packing_pincodes: [],
 };
 
 const AdminProducts: React.FC = () => {
@@ -35,6 +41,7 @@ const AdminProducts: React.FC = () => {
   const [formErrors, setFormErrors] = useState<Partial<ProductFormData>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [imagePlaceholder, setImagePlaceholder] = useState('https://placehold.co/300x300');
+  const [currPincode, setCurrPincode] = useState('');
   const { showToast } = useToast();
 
   useEffect(() => {
@@ -166,19 +173,24 @@ if(!dec){
     
     try {
       setIsSubmitting(true);
+
+      const payload = {
+        name: formData.name,
+        description: formData.description,
+        price: formData.price,
+        category: formData.category,
+        image_url: formData.image_url,
+        is_featured: formData.is_featured,
+        shipping_price: formData.shipping_price,
+        packing_price: formData.packing_price,
+        free_packing_pincodes: formData.free_packing_pincodes,
+      };
       
       if (isEditing && formData.id) {
         // Update existing product
         const { error } = await supabase
           .from('products')
-          .update({
-            name: formData.name,
-            description: formData.description,
-            price: formData.price,
-            category: formData.category,
-            image_url: formData.image_url,
-            is_featured: formData.is_featured,
-          })
+          .update(payload)
           .eq('id', formData.id);
 
         if (error) throw error;
@@ -188,14 +200,7 @@ if(!dec){
         // Create new product
         const { error } = await supabase
           .from('products')
-          .insert({
-            name: formData.name,
-            description: formData.description,
-            price: formData.price,
-            category: formData.category,
-            image_url: formData.image_url,
-            is_featured: formData.is_featured,
-          });
+          .insert(payload);
 
         if (error) throw error;
         
@@ -222,6 +227,9 @@ if(!dec){
       category: product.category,
       image_url: product.image_url,
       is_featured: product.is_featured,
+      shipping_price: product.shipping_price,
+      packing_price: product.packing_price,
+      free_packing_pincodes: product.free_packing_pincodes,
     });
     setImagePlaceholder(product.image_url);
     setIsEditing(true);
@@ -254,6 +262,7 @@ if(!dec){
     setIsEditing(false);
     setShowForm(false);
     setImagePlaceholder('https://placehold.co/300x300');
+    setCurrPincode('');
   };
 
   // Filter products based on search
@@ -438,6 +447,76 @@ if(!dec){
                 </label>
               </div>
             </div>
+
+            <div>
+                <label htmlFor="shipping_price" className="block text-gray-700 mb-2">Shipping Price (₹)</label>
+                <input
+                  type="number"
+                  id="shipping_price"
+                  name="shipping_price"
+                  step="0.01"
+                  min="0"
+                  value={formData.shipping_price}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-md focus:ring focus:ring-primary-200 border-gray-300"
+                  placeholder="0.00"
+                />
+              </div>
+
+              {/* Packing Price */}
+              <div>
+                <label htmlFor="packing_price" className="block text-gray-700 mb-2">Packing Price (₹)</label>
+                <input
+                  type="number"
+                  id="packing_price"
+                  name="packing_price"
+                  step="0.01"
+                  min="0"
+                  value={formData.packing_price}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-md focus:ring focus:ring-primary-200 border-gray-300"
+                  placeholder="0.00"
+                />
+              </div>
+
+              {/* Free Packing Pincodes */}
+              <div>
+                <label className="block text-gray-700 mb-2">Free Packing (Pincodes)</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    type="text"
+                    value={currPincode}
+                    onChange={e => setCurrPincode(e.target.value)}
+                    placeholder="Enter pincode"
+                    className="flex-1 p-2 border rounded-md border-gray-300"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (currPincode && !formData.free_packing_pincodes.includes(currPincode)) {
+                        setFormData(prev => ({
+                          ...prev,
+                          free_packing_pincodes: [...prev.free_packing_pincodes, currPincode]
+                        }));
+                        setCurrPincode('');
+                      }
+                    }}
+                    className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                  >Add</button>
+                </div>
+                <ul className="list-disc pl-5 space-y-1">
+                  {formData.free_packing_pincodes.map(pin => (
+                    <li key={pin} className="flex justify-between items-center">
+                      <span>{pin}</span>
+                      <button type="button" onClick={() => setFormData(prev => ({
+                        ...prev,
+                        free_packing_pincodes: prev.free_packing_pincodes.filter(p => p !== pin)
+                      }))} className="text-red-500">Remove</button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
             
             {/* Right Column - Image Preview */}
             <div className="flex flex-col items-center">

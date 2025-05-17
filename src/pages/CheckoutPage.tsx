@@ -42,13 +42,13 @@ export const CheckoutPage: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
 
-  // Total in INR
-  const cartTotal = cart.reduce((sum, item) => {
-    const priceNum = parseFloat(item.product.price as any) || 0;
-    const qtyNum = parseInt(item.quantity as any, 10) || 0;
-    return sum + priceNum * qtyNum;
+ // compute totals
+  const subtotal = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const shippingTotal = cart.reduce((sum, item) => sum + item.product.shipping_price * item.quantity, 0);
+  const packingTotal = cart.reduce((sum, item) => {
+    return sum + (item.product.free_packing_pincodes.includes(form.pincode) ? 0 : item.product.packing_price) * item.quantity;
   }, 0);
-  const itemCount = cart.reduce((c, i) => c + (parseInt(i.quantity as any, 10) || 0), 0);
+  const grandTotal = subtotal + shippingTotal + packingTotal;
 
   useEffect(() => {
     document.title = 'Checkout | FreshCuts';
@@ -77,12 +77,12 @@ export const CheckoutPage: React.FC = () => {
     const errors: Partial<CheckoutForm> = {};
     let ok = true;
     if (!form.name.trim()) { errors.name = 'Name is required'; ok = false; }
-    if (!/^\d{10}$/.test(form.phone.trim())) { errors.phone = 'Enter a valid 10-digit phone'; ok = false; }
+    if (!/^\d{10}$/.test(form.phone)) { errors.phone = 'Enter a valid 10-digit phone'; ok = false; }
     if (!form.address.trim()) { errors.address = 'Address is required'; ok = false; }
     if (!form.city.trim())    { errors.city = 'City is required'; ok = false; }
     if (!form.state.trim())   { errors.state = 'State is required'; ok = false; }
-    if (!/^\d{5,6}$/.test(form.pincode.trim())) { errors.pincode = 'Enter valid PIN code'; ok = false; }
-    if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) { errors.email = 'Valid email is required'; ok = false; }
+    if (!/^\d{5,6}$/.test(form.pincode)) { errors.pincode = 'Enter valid PIN code'; ok = false; }
+     if (!form.email.trim() || !/\S+@\S+\.\S+/.test(form.email)) { errors.email = 'Valid email is required'; ok = false; }
     setFormErrors(errors);
     return ok;
   };
@@ -97,7 +97,7 @@ export const CheckoutPage: React.FC = () => {
         phone: form.phone,
         address: `${form.address}, ${form.landmark ? form.landmark + ', ' : ''}${form.city}, ${form.state} ${form.pincode}, ${form.country}`,
         address_type: form.addressType,
-        total_amount: cartTotal,
+        total_amount: grandTotal,
         status: 'Pending',
         user_id: user.id,
       })
@@ -124,7 +124,7 @@ export const CheckoutPage: React.FC = () => {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ supabaseOrderId: orderId, amount: cartTotal }),
+        body: JSON.stringify({ supabaseOrderId: orderId, amount: grandTotal }),
       }
     );
     if (!resp.ok) {
@@ -147,7 +147,7 @@ export const CheckoutPage: React.FC = () => {
        initializeRazorpay(
         {
           orderId: razorpayOrderId,
-          amount: cartTotal,
+          amount: grandTotal,
           name: form.name,
           phone: form.phone,
           email: form.email,
@@ -359,7 +359,7 @@ export const CheckoutPage: React.FC = () => {
               ) : (
                 <span className="flex items-center justify-center">
                   <CreditCard size={20} className="mr-2" />
-                  Proceed to Payment (₹{cartTotal.toFixed(2)})
+                  Proceed to Payment (₹{grandTotal.toFixed(2)})
                 </span>
               )}
             </button>
@@ -370,73 +370,37 @@ export const CheckoutPage: React.FC = () => {
       
         {/* Order Summary */}
         <div className="bg-white rounded-lg shadow-md p-6 sticky top-24">
-          <h2 className="text-xl font-semibold mb-6">
-            Order Summary
-          </h2>
+          <h2 className="text-xl font-semibold mb-6">Order Summary</h2>
           <div className="mb-6">
-            {cart.map((item) => {
-              const priceNum =
-                parseFloat(item.product.price as any) || 0;
-              const qtyNum =
-                parseInt(item.quantity as any, 10) || 0;
-              return (
-                <div
-                  key={item.id}
-                  className="flex justify-between py-2"
-                >
-                  <div className="flex items-center">
-                    <img
-                      src={
-                        item.product.image_url ||
-                        'https://via.placeholder.com/50'
-                      }
-                      alt={item.product.name}
-                      className="w-10 h-10 object-cover rounded-md mr-3"
-                    />
-                    <div>
-                      <p className="font-medium">
-                        {item.product.name}
-                      </p>
-                      <p className="text-gray-500 text-sm">
-                        Qty: {qtyNum}
-                      </p>
-                    </div>
+            {cart.map(item => (
+              <div key={item.id} className="flex justify-between py-2">
+                <div className="flex items-center">
+                  <img src={item.product.image_url} alt={item.product.name} className="w-10 h-10 object-cover rounded-md mr-3" />
+                  <div>
+                    <p className="font-medium">{item.product.name}</p>
+                    <p className="text-gray-500 text-sm">Qty: {item.quantity}</p>
                   </div>
-                  <p className="font-medium">
-                    ₹{(priceNum * qtyNum).toFixed(2)}
-                  </p>
                 </div>
-              );
-            })}
+                <div className="text-right">
+                  <p>Base: ₹{(item.product.price * item.quantity).toFixed(2)}</p>
+                  <p>Ship: ₹{(item.product.shipping_price * item.quantity).toFixed(2)}</p>
+                  <p>Pack: ₹{((item.product.free_packing_pincodes.includes(form.pincode) ? 0 : item.product.packing_price) * item.quantity).toFixed(2)}</p>
+                  <p className="font-semibold">₹{((item.product.price + item.product.shipping_price + (item.product.free_packing_pincodes.includes(form.pincode) ? 0 : item.product.packing_price)) * item.quantity).toFixed(2)}</p>
+                </div>
+              </div>
+            ))}
           </div>
           <div className="border-t pt-4 space-y-2">
-            <div className="flex justify-between">
-              <span className="text-gray-600">Subtotal</span>
-              <span className="font-medium">
-                ₹{cartTotal.toFixed(2)}
-              </span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-gray-600">Shipping</span>
-              <span className="font-medium">Free</span>
-            </div>
-            <div className="border-t pt-2 flex justify-between">
-              <span className="text-gray-800 font-semibold">
-                Total
-              </span>
-              <span className="text-xl font-bold">
-                ₹{cartTotal.toFixed(2)}
-              </span>
-            </div>
+            <div className="flex justify-between"><span>Subtotal</span><span>₹{subtotal.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Shipping Total</span><span>₹{shippingTotal.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Packing Total</span><span>₹{packingTotal.toFixed(2)}</span></div>
+            <div className="border-t pt-2 flex justify-between"><span className="font-semibold">Total</span><span className="text-xl font-bold">₹{grandTotal.toFixed(2)}</span></div>
           </div>
-
-        
-          <div className="mt-6 bg-gray-50 p-4 rounded-md text-sm text-gray-600">
-            Payment via Razorpay. All cards & UPI accepted.
-          </div>
+          <div className="mt-6 bg-gray-50 p-4 rounded-md text-sm text-gray-600"><Info size={16} className="mr-2 inline-block"/>Payment via Razorpay. All cards & UPI accepted.</div>
+        </div>
         </div>
       </div>
-    </div>
+    
   );
 };
 

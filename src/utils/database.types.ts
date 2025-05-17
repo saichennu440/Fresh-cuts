@@ -19,6 +19,9 @@ export interface Database {
           category: string
           image_url: string
           is_featured: boolean
+          shipping_price: number
+          packing_price: number
+          free_packing_pincodes: string[]
         }
         Insert: {
           id?: string
@@ -29,6 +32,9 @@ export interface Database {
           category: string
           image_url: string
           is_featured?: boolean
+          shipping_price?: number
+          packing_price?: number
+          free_packing_pincodes?: string[]
         }
         Update: {
           id?: string
@@ -39,6 +45,9 @@ export interface Database {
           category?: string
           image_url?: string
           is_featured?: boolean
+          shipping_price?: number
+          packing_price?: number
+          free_packing_pincodes?: string[]
         }
       }
       orders: {
