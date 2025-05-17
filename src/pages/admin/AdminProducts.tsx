@@ -241,6 +241,9 @@ if(!dec){
     if (!window.confirm('Are you sure you want to delete this product?')) return;
     
     try {
+      const { error: itemsErr } = await supabase.from('order_items').delete().eq('product_id', id);
+      if (itemsErr) throw itemsErr;
+
       const { error } = await supabase
         .from('products')
         .delete()

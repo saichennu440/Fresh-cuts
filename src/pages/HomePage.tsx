@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import HeroCarousel from '../components/home/HeroCarousel';
 import FeaturedProducts from '../components/home/FeaturedProducts';
 import CustomerReviews from '../components/home/CustomerReviews';
-
+import {Categories} from '../components/home/Categories';
 const HomePage: React.FC = () => {
   useEffect(() => {
     // Set page title
@@ -84,6 +84,7 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </div>
+      <Categories />
       <FeaturedProducts />
       <CustomerReviews />
       <div className="py-16 bg-primary-600 text-white">

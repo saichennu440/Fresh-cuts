@@ -9,4 +9,12 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Missing Supabase URL or anon key');
 }
 
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+// ✅ Create the Supabase client with persistent session storage
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: true,
+    storage: localStorage, // explicitly use localStorage for clarity
+  },
+});
