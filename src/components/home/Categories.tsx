@@ -9,22 +9,22 @@ interface Category {
 
 const categories: Category[] = [
   {
-    key: 'seafood',
+    key: 'fish',
     label: 'Fish',
     imageUrl: '/images/categories/fish.jpg',
   },
   {
-    key: 'seafoods',
+    key: 'prawn',
     label: 'Prawn',
     imageUrl: '/images/categories/prawn.jpg',
   },
   {
-    key: 'pickles',
-    label: 'Pickles',
+    key: 'pickle',
+    label: 'pickels',
     imageUrl: '/images/categories/pickles.jpg',
   },
   {
-    key: 'seafoods',
+    key: 'crab',
     label: 'Crab',
     imageUrl: '/images/categories/crab.jpg',
   },

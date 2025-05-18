@@ -3,6 +3,7 @@ import { supabase } from '../utils/supabase';
 import ProductCard from '../components/ui/ProductCard';
 import { Database } from '../utils/database.types';
 import { Search, Filter } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 type Product = Database['public']['Tables']['products']['Row'];
 
@@ -10,14 +11,23 @@ const ProductsPage: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  //const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('newest');
   const [categories, setCategories] = useState<string[]>([]);
+  const [searchParams] = useSearchParams();
+  // initialize from URL (fallback to "all")
+  const [selectedCategory, setSelectedCategory] = useState(
+    () => searchParams.get('category') ?? 'all'
+  );
 
+  // on mount, and whenever the URL’s ?category changes, update our filter
   useEffect(() => {
     document.title = 'Products | FreshCuts';
     fetchProducts();
-  }, []);
+
+    const cat = searchParams.get('category') ?? 'all';
+    setSelectedCategory(cat);
+  }, [searchParams]);
 
   const fetchProducts = async () => {
     try {
@@ -27,7 +37,7 @@ const ProductsPage: React.FC = () => {
       const { data, error } = await supabase
         .from('products')
         .select('*')
-        .neq('category', 'pickle') // Exclude pickles
+        //.neq('category', 'pickle') // Exclude pickles
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -97,7 +107,13 @@ const ProductsPage: React.FC = () => {
             </div>
             <select
               value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
+              //onChange={(e) => setSelectedCategory(e.target.value)}
+               onChange={(e) => {
+          setSelectedCategory(e.target.value);
+          // also keep the URL in sync if you want back/forward to work:
+          searchParams.set('category', e.target.value);
+          // note: useSearchParams’s setter would be `setSearchParams(searchParams)`
+        }}  
               className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="all">All Categories</option>

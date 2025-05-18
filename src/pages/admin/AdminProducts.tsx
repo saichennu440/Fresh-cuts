@@ -369,8 +369,18 @@ if(!dec){
                   {formErrors.price && (
                     <p className="text-red-500 text-sm mt-1">{formErrors.price ?? ''}</p>
                   )}
+          
                 </div>
-                
+                <div>
+                  <label htmlFor="quantity" className="block text-gray-700 mb-2">
+                    quantity display
+                  </label>
+                  <select>
+                    <option>1 kg</option>
+                    <option>1/2 kg</option>
+                    <option>250 g</option>
+                  </select>
+                </div>
                 <div>
                   <label htmlFor="category" className="block text-gray-700 mb-2">
                     Category *
@@ -384,11 +394,12 @@ if(!dec){
                       formErrors.category ? 'border-red-500' : 'border-gray-300'
                     }`}
                   >
-                    <option value="meat">Meat</option>
+                    <option value="fish">Fish</option>
                     <option value="chicken">Chicken</option>
-                    <option value="mutton">Mutton</option>
-                    <option value="seafood">Seafood</option>
-                    <option value="pickle">Pickle</option>
+                    <option value="prawn">prawn</option>
+                    <option value="crab">crab</option>
+                    <option value="pickle">Pickles</option>
+                    <option value="meat">meat</option>
                   </select>
                   {formErrors.category && (
                     <p className="text-red-500 text-sm mt-1">{formErrors.category}</p>

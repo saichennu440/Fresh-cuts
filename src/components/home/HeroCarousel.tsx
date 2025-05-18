@@ -49,8 +49,8 @@ const HeroCarousel: React.FC = () => {
   return (
     <div className="relative pt-[72px]">
       <Swiper
-        modules={[Navigation, Pagination, Autoplay]}
-        navigation
+        modules={[ Pagination, Autoplay]}
+        //navigation
         pagination={{ clickable: true }}
         autoplay={{ delay: 5000, disableOnInteraction: false }}
         loop={true}
