@@ -52,16 +52,22 @@ const AdminDashboard: React.FC = () => {
       // Fetch total revenue
       const { data: revenueData } = await supabase
         .from('orders')
-        .select('total_amount')
-        .eq('status', 'Paid');
+        .select('total_amount, status')
+        .neq('status', 'Pending')
+        .neq('status', 'Failed');
       
-      const totalRevenue = revenueData?.reduce((acc, order) => acc + order.total_amount, 0) || 0;
+      const totalRevenue =
+        revenueData?.reduce(
+          (sum, o) => sum + (o.total_amount || 0),
+          0
+        ) || 0;
       
       // Fetch total products
       const { count: totalProducts } = await supabase
         .from('products')
-        .select('*', { count: 'exact', head: true });
-      
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'Pending');
+         
       // Fetch pending orders
       const { count: pendingOrders } = await supabase
         .from('orders')
@@ -81,10 +87,11 @@ const AdminDashboard: React.FC = () => {
         .select('id, name, price')
         .limit(5);
       
-      const topProducts = products?.map((product, index) => ({
-        ...product,
-        orders: Math.floor(Math.random() * 50) + 10, // Simulated order count
-      })) || [];
+      const topProducts =
+        products?.map((p) => ({
+          ...p,
+          orders: Math.floor(Math.random() * 50) + 10,
+        })) || [];
       
       setStats({
         totalOrders: totalOrders || 0,

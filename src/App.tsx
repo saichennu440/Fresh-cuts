@@ -87,6 +87,7 @@ function AppRoutes() {
          <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
          <Route path="/terms" element={<TermsPage />} />
          <Route path="/shipping-policy" element={<ShippingPolicyPage />} />
+           
       </Route>
 
       {/* Admin Routes – guarded */}

@@ -6,14 +6,34 @@ import { useAuth } from '../contexts/AuthContext';
 import { useCart } from '../contexts/CartContext';
 import { useWishlist } from '../contexts/WishlistContext';
 import { useToast } from '../contexts/ToastContext';
-import { Heart, ShoppingCart, Minus, Plus, ArrowLeft } from 'lucide-react';
+import { Heart, ShoppingCart, Minus, Plus, ArrowLeft,
+   Users,
+  Package2,
+  Scale,
+  HardDrive,
+  //Whatsapp
+ } from 'lucide-react';
 
-type Product = Database['public']['Tables']['products']['Row'];
+type Product = Database['public']['Tables']['products']['Row']& {
+  pieces: string;
+  serves: string;
+  gross_weight: string;
+  net_weight: string;
+};
+
+type PriceOption = {
+  id: string;
+  product_id: string;
+  price: number;
+  weight_label: string;
+};
 
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [product, setProduct] = useState<Product | null>(null);
   const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
+  const [priceOptions, setPriceOptions] = useState<PriceOption[]>([]);
+  const [selectedOption, setSelectedOption] = useState<PriceOption | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { user } = useAuth();
@@ -27,37 +47,44 @@ const ProductDetailPage: React.FC = () => {
     }
   }, [id]);
 
-  const fetchProduct = async () => {
+    const fetchProduct = async () => {
     try {
       setLoading(true);
-      
-      // Fetch the product
-      const { data, error } = await supabase
+      // 1) load the product
+      const { data: prodData, error: prodErr } = await supabase
         .from('products')
         .select('*')
         .eq('id', id)
         .single();
+      if (prodErr) throw prodErr;
+      setProduct(prodData);
 
-      if (error) throw error;
-      
-      setProduct(data);
-      document.title = `${data.name} | FreshCuts`;
-      
-      // Fetch related products (same category)
-      if (data) {
-        const { data: relatedData, error: relatedError } = await supabase
-          .from('products')
-          .select('*')
-          .eq('category', data.category)
-          .neq('id', id)
-          .limit(4);
-
-        if (!relatedError && relatedData) {
-          setRelatedProducts(relatedData);
-        }
+      // 2) load its price-options (with error check)
+      const { data: optsData, error: optsErr } = await supabase
+        .from('product_price_options')
+        .select('*')
+        .eq('product_id', prodData.id);
+      if (optsErr) {
+        console.error('price options error', optsErr);
+        showToast('Failed to load price options', 'error');
+      } else {
+        console.log('price options:', optsData);
+        const opts: PriceOption[] = optsData ?? [];
+        setPriceOptions(opts);
+        if (opts.length) setSelectedOption(opts[0]);
       }
-    } catch (error) {
-      console.error('Error fetching product:', error);
+
+      // 3) related products
+      const { data: relData, error: relErr } = await supabase
+        .from('products')
+        .select('*')
+        .eq('category', prodData.category)
+        .neq('id', prodData.id)
+        .limit(4);
+      if (!relErr && relData) setRelatedProducts(relData as Product[]);
+      
+    } catch (err) {
+      console.error('Error fetching product:', err);
       showToast('Failed to load product details', 'error');
     } finally {
       setLoading(false);
@@ -70,15 +97,19 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const handleAddToCart = () => {
-    if (!user) {
-      showToast('Please login to add items to cart', 'info');
+    if (!user) return showToast('Please login to add to cart', 'info');
+    if (!product || !selectedOption) {
+      showToast('Please select a price option', 'info');
       return;
     }
-
-    if (product) {
-      addToCart(product, quantity);
-      showToast(`${quantity} × ${product.name} added to cart`, 'success');
-    }
+    addToCart({
+      ...product,
+      price: selectedOption.price
+    }, quantity);
+    showToast(
+      `${quantity} × ${product.name} (${selectedOption.weight_label}) added`,
+      'success'
+    );
   };
 
   const handleWishlist = () => {
@@ -100,12 +131,12 @@ const ProductDetailPage: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="container mx-auto px-4 py-24">
+      <div className="container mx-auto px-4 py-24 ">
         <div className="animate-pulse">
           <div className="h-8 bg-gray-300 w-1/3 mb-4 rounded"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div className="h-96 bg-gray-300 rounded-lg"></div>
-            <div>
+            <div>...loading
               <div className="h-8 bg-gray-300 w-3/4 mb-4 rounded"></div>
               <div className="h-4 bg-gray-300 w-1/4 mb-4 rounded"></div>
               <div className="h-32 bg-gray-300 w-full mb-6 rounded"></div>
@@ -179,18 +210,43 @@ const ProductDetailPage: React.FC = () => {
             )}
           </div>
           <p className="text-gray-600 mb-6">{product.description}</p>
+
+          {/* Price Options */}
+           {priceOptions.length > 0 ? (
+            <div className="flex flex-wrap gap-4 mb-6">
+              {priceOptions.map(opt => (
+                <button
+                  key={opt.id}
+                  onClick={() => setSelectedOption(opt)}
+                  className={`px-4 py-2 border rounded-full transition ${
+                    selectedOption?.id === opt.id
+                      ? 'border-primary-600 bg-primary-50'
+                      : 'border-gray-300'
+                  }`}
+                >
+                  ₹{opt.price.toFixed(2)} – {opt.weight_label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <p className="mb-6 text-gray-500">No price options available</p>
+          )}
+
+          {/* Selected Price */}
           <div className="text-3xl font-bold text-gray-900 mb-6">
-            ₹{product.price.toFixed(2)}
+            ₹{(selectedOption ?? { price: product.price }).price.toFixed(2)}
           </div>
 
-          {/* Quantity Selector */}
+
+
+          {/* Quantity */}
           <div className="flex items-center mb-6">
             <span className="text-gray-700 mr-4">Quantity:</span>
             <div className="flex items-center border border-gray-300 rounded-md">
               <button
                 onClick={() => handleQuantityChange(quantity - 1)}
-                className="px-3 py-2 text-gray-600 hover:bg-gray-100"
                 disabled={quantity <= 1}
+                className="px-3 py-2 hover:bg-gray-100"
               >
                 <Minus size={16} />
               </button>
@@ -198,56 +254,60 @@ const ProductDetailPage: React.FC = () => {
                 type="number"
                 min="1"
                 value={quantity}
-                onChange={(e) => handleQuantityChange(parseInt(e.target.value) || 1)}
+                onChange={e => handleQuantityChange(+e.target.value)}
                 className="w-16 text-center border-none focus:ring-0"
               />
               <button
                 onClick={() => handleQuantityChange(quantity + 1)}
-                className="px-3 py-2 text-gray-600 hover:bg-gray-100"
+                className="px-3 py-2 hover:bg-gray-100"
               >
                 <Plus size={16} />
               </button>
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-4">
+         {/* Actions */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <button
               onClick={handleAddToCart}
-              className="flex-1 flex items-center justify-center px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition"
+              className="flex-1 flex items-center justify-center px-6 py-3 bg-primary-600 text-white rounded-md"
             >
-              <ShoppingCart size={18} className="mr-2" />
-              Add to Cart
+              <ShoppingCart size={18} className="mr-2" /> Add to Cart
             </button>
             <button
               onClick={handleWishlist}
-              className={`flex items-center justify-center px-6 py-3 rounded-md transition ${
+              className={`flex items-center justify-center px-6 py-3 rounded-md ${
                 isInWishlist(product.id)
-                  ? 'bg-red-50 text-red-500 border border-red-200 hover:bg-red-100'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-red-50 text-red-500 border border-red-200'
+                  : 'bg-gray-100 text-gray-700'
               }`}
             >
-              <Heart
-                size={18}
-                className="mr-2"
-                fill={isInWishlist(product.id) ? 'currentColor' : 'none'}
-              />
+              <Heart size={18} className="mr-2" fill={isInWishlist(product.id) ? 'currentColor' : 'none'} />
               {isInWishlist(product.id) ? 'In Wishlist' : 'Add to Wishlist'}
             </button>
           </div>
 
           {/* Additional Information */}
-          <div className="mt-8 pt-8 border-t">
-            <h3 className="text-lg font-semibold mb-4">Additional Information</h3>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <span className="text-gray-600">Category:</span>
-                <span className="ml-2 capitalize">{product.category}</span>
-              </div>
-              <div>
-                <span className="text-gray-600">SKU:</span>
-                <span className="ml-2">{product.id.toString().slice(0, 8).toUpperCase()}</span>
-              </div>
+           <div className="mt-6 border-t pt-6 grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
+            <div className="flex flex-col items-center">
+              <Package2 size={32} className="mb-2 text-gray-600"/>
+              <span className="font-medium">Pieces</span>
+              <span>{product.pieces}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <Users size={32} className="mb-2 text-gray-600"/>
+              <span className="font-medium">Serves</span>
+              <span>{product.serves}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <Scale size={32} className="mb-2 text-gray-600"/>
+              <span className="font-medium">Gross weight</span>
+              <span>{product.gross_weight}</span>
+            </div>
+            <div className="flex flex-col items-center">
+              <HardDrive size={32} className="mb-2 text-gray-600"/>
+              <span className="font-medium">Net weight</span>
+              <span>{product.net_weight}</span>
             </div>
           </div>
         </div>

@@ -4,31 +4,50 @@ import { useToast } from '../../contexts/ToastContext';
 import { Plus, Edit2, Trash2, Search, X, Check, UploadCloud } from 'lucide-react';
 import { Database } from '../../utils/database.types';
 
-type Product = Database['public']['Tables']['products']['Row'];
+type Product = Database['public']['Tables']['products']['Row'] & {
+  pieces: string;
+  serves: string;
+  gross_weight: string;
+  net_weight: string;
+};
+
+interface PriceOptionInput {
+  id?: string;
+  price: number;
+  weight_label: string;
+}
 
 interface ProductFormData {
   id?: string;
   name: string;
   description: string;
-  price: number;
+  price_options:PriceOptionInput[] ;
   category: string;
   image_url: string;
   is_featured: boolean;
   shipping_price: number;
   packing_price: number;
   free_packing_pincodes: string[];
+  pieces: string;
+  serves: string;
+  gross_weight: string;
+  net_weight: string;
 }
 
 const initialFormData: ProductFormData = {
   name: '',
   description: '',
-  price: 0,
+  price_options: [{ price: 0, weight_label: '' }],
   category: 'meat',
   image_url: '',
   is_featured: false,
    shipping_price: 0,
   packing_price: 0,
   free_packing_pincodes: [],
+  pieces: '',
+  serves: '',
+  gross_weight: '',
+  net_weight: ''
 };
 
 const AdminProducts: React.FC = () => {
@@ -99,33 +118,38 @@ const AdminProducts: React.FC = () => {
     }
   };
 
+  const handlePriceOptionChange = (index: number, field: keyof PriceOptionInput, value: string) => {
+    const opts = [...formData.price_options];
+    opts[index] = {
+      ...opts[index],
+      [field]: field === 'price' ? parseFloat(value) || 0 : value
+    } as any;
+    setFormData(prev => ({ ...prev, price_options: opts }));
+  };
+
+  const addPriceOption = () => {
+    setFormData(prev => ({
+      ...prev,
+      price_options: [...prev.price_options, { price: 0, weight_label: '' }]
+    }));
+  };
+
+  const removePriceOption = (index: number) => {
+    setFormData(prev => ({ ...prev, price_options: prev.price_options.filter((_, i) => i !== index) }));
+  };
+
   const validateForm = (): boolean => {
-    // at top of validateForm()
-
-    
-const name = formData.name?.trim() ?? ''
-const desc = formData.description?.trim() ?? ''
-//const img  = formData.image_url?.trim() ?? ''
-const dec = formData.description?.trim() ?? ''
-let isValid = true
-const errors: Partial<ProductFormData> = {}
-
-if (!name) {
-  errors.name = 'Product name is required'
-  isValid = false
-}
-
-if (!desc) {
-  errors.description = 'Product description is required'
-  isValid = false
-}
-
-if(!dec){
-  errors.description = 'Product description is required'
-  isValid = false
-}
-
-
+    const errors: Partial<ProductFormData> = {};
+    let isValid = true;
+    if (!formData.name.trim()) { errors.name = 'Name required'; isValid = false; }
+    if (!formData.description.trim()) { errors.description = 'Description required'; isValid = false; }
+    formData.price_options.forEach((opt, idx) => {
+      if (!opt.weight_label.trim()) {
+        errors.price_options = errors.price_options || ([] as any);
+        (errors.price_options as any[])[idx] = { weight_label: 'Label required' };
+        isValid = false;
+      }
+    });
     setFormErrors(errors);
     return isValid;
   };
@@ -173,38 +197,70 @@ if(!dec){
     
     try {
       setIsSubmitting(true);
-
-      const payload = {
+ const defaultPrice = formData.price_options[0]?.price ?? 0;
+      const payload:any = {
         name: formData.name,
         description: formData.description,
-        price: formData.price,
+        price: defaultPrice,
         category: formData.category,
         image_url: formData.image_url,
         is_featured: formData.is_featured,
         shipping_price: formData.shipping_price,
         packing_price: formData.packing_price,
         free_packing_pincodes: formData.free_packing_pincodes,
+        pieces: formData.pieces,
+        serves: formData.serves,
+        gross_weight: formData.gross_weight,
+        net_weight: formData.net_weight
       };
       
+      
+      let prodId: string;
       if (isEditing && formData.id) {
-        // Update existing product
         const { error } = await supabase
           .from('products')
           .update(payload)
           .eq('id', formData.id);
-
         if (error) throw error;
-        
+        prodId = formData.id;
         showToast('Product updated successfully', 'success');
       } else {
-        // Create new product
-        const { error } = await supabase
+        const { data, error } = await supabase
           .from('products')
-          .insert(payload);
-
+          .insert(payload)
+          .select('id')
+          .single();
         if (error) throw error;
-        
-        showToast('Product added successfully', 'success');
+        prodId = data.id;
+        showToast('Product updated successfully', 'success');
+      }
+
+      // 2) Upsert price-options
+      const newOpts = formData.price_options.filter(o => !o.id).map(o => ({
+        product_id: prodId,
+        price: o.price,
+        weight_label: o.weight_label,
+      }));
+      const existingOpts = formData.price_options
+        .filter(o => o.id)
+        .map(o => ({
+          id: o.id!,
+          product_id: prodId,
+          price: o.price,
+          weight_label: o.weight_label
+        }));
+
+      if (newOpts.length) {
+        const { error: insErr } = await supabase
+          .from('product_price_options')
+          .insert(newOpts);
+        if (insErr) throw insErr;
+      }
+      if (existingOpts.length) {
+        const { error: upErr } = await supabase
+          .from('product_price_options')
+          .upsert(existingOpts, { onConflict: 'id' });
+        if (upErr) throw upErr;
       }
       
       // Reset form and refresh products
@@ -216,20 +272,36 @@ if(!dec){
     } finally {
       setIsSubmitting(false);
     }
+    
   };
 
-  const editProduct = (product: Product) => {
+  
+     const editProduct = async (product: Product) => {
+    // load its price options as any[]
+   const { data } = await supabase
+  .from('product_price_options')
+  .select('*')
+  .eq('product_id', product.id);
+const priceOpts = data ?? [];
     setFormData({
       id: product.id,
       name: product.name,
       description: product.description,
-      price: product.price,
+      price_options: priceOpts.map((o: any) => ({
+        id: o.id,
+        price: o.price,
+        weight_label: o.weight_label,
+      })),
       category: product.category,
       image_url: product.image_url,
       is_featured: product.is_featured,
       shipping_price: product.shipping_price,
       packing_price: product.packing_price,
       free_packing_pincodes: product.free_packing_pincodes,
+      pieces: product.pieces ?? 0,
+      serves: product.serves ?? 0,
+      gross_weight: product.gross_weight ?? '',
+      net_weight: product.net_weight ?? ''
     });
     setImagePlaceholder(product.image_url);
     setIsEditing(true);
@@ -350,37 +422,29 @@ if(!dec){
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="price" className="block text-gray-700 mb-2">
-                    Price (₹) *
-                  </label>
-                  <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    step="0.01"
-                    min="0"
-                    value={formData.price ?? ''}
-                    onChange={handleChange}
-                    className={`w-full p-3 border rounded-md focus:ring focus:ring-primary-200 ${
-                      formErrors.price ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    placeholder="0.00"
-                  />
-                  {formErrors.price && (
-                    <p className="text-red-500 text-sm mt-1">{formErrors.price ?? ''}</p>
-                  )}
-          
-                </div>
-                <div>
-                  <label htmlFor="quantity" className="block text-gray-700 mb-2">
-                    quantity display
-                  </label>
-                  <select>
-                    <option>1 kg</option>
-                    <option>1/2 kg</option>
-                    <option>250 g</option>
-                  </select>
-                </div>
+                 <label className="block text-gray-700 mb-2">Price Options</label>
+            {formData.price_options.map((opt, idx) => (
+              <div key={idx} className="flex gap-2 mb-2">
+                <input
+                  type="number"
+                  step="0.01"
+                  placeholder="₹ Price"
+                  value={opt.price}
+                  onChange={e => handlePriceOptionChange(idx, 'price', e.target.value)}
+                  className="p-2 border rounded flex-1"
+                />
+                <input
+                  type="text"
+                  placeholder="Weight (e.g. ½ kg)"
+                  value={opt.weight_label}
+                  onChange={e => handlePriceOptionChange(idx, 'weight_label', e.target.value)}
+                  className="p-2 border rounded flex-1"
+                />
+                <button type="button" onClick={() => removePriceOption(idx)} className="text-red-500 px-2">✕</button>
+              </div>
+            ))}
+            <button type="button" onClick={addPriceOption} className="px-3 py-1 bg-gray-200 rounded">+ Add Option</button>
+          </div>
                 <div>
                   <label htmlFor="category" className="block text-gray-700 mb-2">
                     Category *
@@ -531,6 +595,56 @@ if(!dec){
                 </ul>
               </div>
 
+             <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="pieces" className="block text-gray-700 mb-2">Pieces *</label>
+                <input
+                  type="text"
+                  id="pieces"
+                  name="pieces"
+                  value={formData.pieces}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-md focus:ring focus:ring-primary-200 border-gray-300"
+                  placeholder="e.g. 8-12"
+                />
+              </div>
+              <div>
+                <label htmlFor="serves" className="block text-gray-700 mb-2">Serves *</label>
+                <input
+                  type="text"
+                  id="serves"
+                  name="serves"
+                  value={formData.serves}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-md focus:ring focus:ring-primary-200 border-gray-300"
+                  placeholder="e.g. 2-4"
+                />
+              </div>
+              <div>
+                <label htmlFor="gross_weight" className="block text-gray-700 mb-2">Gross Weight *</label>
+                <input
+                  type="text"
+                  id="gross_weight"
+                  name="gross_weight"
+                  value={formData.gross_weight}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-md focus:ring focus:ring-primary-200 border-gray-300"
+                  placeholder="e.g. 1000 gms"
+                />
+              </div>
+              <div>
+                <label htmlFor="net_weight" className="block text-gray-700 mb-2">Net Weight *</label>
+                <input
+                  type="text"
+                  id="net_weight"
+                  name="net_weight"
+                  value={formData.net_weight}
+                  onChange={handleChange}
+                  className="w-full p-3 border rounded-md focus:ring focus:ring-primary-200 border-gray-300"
+                  placeholder="e.g. 700 gms"
+                />
+              </div>
+            </div>
             
             {/* Right Column - Image Preview */}
             <div className="flex flex-col items-center">
