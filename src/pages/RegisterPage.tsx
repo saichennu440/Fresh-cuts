@@ -83,7 +83,7 @@ const RegisterPage: React.FC = () => {
                   id="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-primary-200"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-sea-200"
                   placeholder="Your email address"
                   required
                 />
@@ -103,7 +103,7 @@ const RegisterPage: React.FC = () => {
                   id="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-primary-200"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-sea-200"
                   placeholder="Create a password"
                   required
                 />
@@ -126,7 +126,7 @@ const RegisterPage: React.FC = () => {
                   id="confirmPassword"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-primary-200"
+                  className="w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring focus:ring-sea-200"
                   placeholder="Confirm your password"
                   required
                 />
@@ -139,7 +139,7 @@ const RegisterPage: React.FC = () => {
               className={`w-full py-3 px-6 flex items-center justify-center rounded-md text-white font-semibold text-lg ${
                 loading
                   ? 'bg-gray-400 cursor-not-allowed'
-                  : 'bg-primary-600 hover:bg-primary-700'
+                  : 'bg-sea-500 hover:bg-sea-600'
               } transition`}
             >
               {loading ? (
@@ -162,7 +162,7 @@ const RegisterPage: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Already have an account?{' '}
-              <Link to="/login" className="text-primary-600 hover:text-primary-800 font-medium">
+              <Link to="/login" className="text-sea-600 hover:text-sea-800 font-medium">
                 Sign In
               </Link>
             </p>

@@ -93,7 +93,7 @@ const LoginPage: React.FC = () => {
                 </label>
                 
                 <Link to="/forgot-password"
-              className="text-sm text-primary-600 hover:text-primary-800"> Forgot password?
+              className="text-sm text-sea-600 hover:text-sea-700"> Forgot password?
               </Link>
 
               </div>
@@ -117,7 +117,7 @@ const LoginPage: React.FC = () => {
               type="submit"
               disabled={loading}
               className={`w-full py-3 flex items-center justify-center rounded-md text-white font-semibold ${
-                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-primary-600 hover:bg-primary-700'
+                loading ? 'bg-gray-400 cursor-not-allowed' : 'bg-sea-500 hover:bg-sea-600'
               }`}
             >
               {loading ? (
@@ -157,7 +157,7 @@ const LoginPage: React.FC = () => {
           <div className="mt-6 text-center">
             <p className="text-gray-600">
               Don't have an account?{' '}
-              <Link to="/register" className="text-primary-600 hover:text-primary-800 font-medium">
+              <Link to="/register" className="text-sea-600 hover:text-sea-700 font-medium">
                 Create Account
               </Link>
             </p>

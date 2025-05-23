@@ -1,0 +1,16 @@
+/* src/styles/waves.css */
+@layer utilities {
+  .bg-wave {
+    background: url('/images/wave-pattern.svg') repeat-x bottom;
+    animation: wave 10s linear infinite;
+  }
+  .bubble {
+    position: absolute;
+    background: rgba(255,255,255,0.6);
+    border: 1px solid rgba(255,255,255,0.9);
+    box-shadow: 0 0 8px rgba(255,255,255,0.5);
+    border-radius: 50%;
+    animation: float 4s ease-in-out infinite;
+    backdrop-filter: blur(1px);
+  }
+}

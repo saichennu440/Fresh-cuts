@@ -3,6 +3,12 @@ export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
+      // custom font (install via npm & import in your globals)
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+      },
+
+      // color palette
       colors: {
         primary: {
           50: '#f0fdf4',
@@ -43,27 +49,62 @@ export default {
           900: '#7c2d12',
           950: '#431407',
         },
+        // beach / sea theme
+        sea: {
+          50:  '#e0f7fa', 100: '#b2ebf2', 200: '#80deea',
+          300: '#4dd0e1', 400: '#26c6da', 500: '#00bcd4',
+          600: '#00acc1', 700: '#0097a7', 800: '#00838f',
+          900: '#006064',
+        },
+        sand: {
+          50:  '#fff8e1', 100: '#ffecb3', 200: '#ffe082',
+          300: '#ffd54f', 400: '#ffca28', 500: '#ffc107',
+          600: '#ffb300', 700: '#ffa000', 800: '#ff8f00',
+          900: '#ff6f00',
+        },
       },
-      animation: {
-        'fade-in': 'fadeIn 0.5s ease-in-out',
-        'slide-up': 'slideUp 0.5s ease-in-out',
-        'slide-down': 'slideDown 0.3s ease-in-out',
-      },
+
+      // custom keyframes & animations
       keyframes: {
         fadeIn: {
-          '0%': { opacity: '0' },
+          '0%':   { opacity: '0' },
           '100%': { opacity: '1' },
         },
         slideUp: {
-          '0%': { transform: 'translateY(10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+          '0%':   { transform: 'translateY(10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)',      opacity: '1' },
         },
         slideDown: {
-          '0%': { transform: 'translateY(-10px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+          '0%':   { transform: 'translateY(-10px)', opacity: '0' },
+          '100%': { transform: 'translateY(0)',      opacity: '1' },
         },
+        // background wave scroll
+        wave: {
+          '0%':   { 'background-position-x': '0' },
+          '100%': { 'background-position-x': '1000px' },
+        },
+        // floating bubbles
+        float: {
+          '0%':   { transform: 'translateY(0)',     opacity: '0.7' },
+          '50%':  { transform: 'translateY(-20px)', opacity: '1'   },
+          '100%': { transform: 'translateY(0)',     opacity: '0.7' },
+        },
+      },
+      animation: {
+        'fade-in':    'fadeIn 0.5s ease-in-out',
+        'slide-up':   'slideUp 0.5s ease-in-out',
+        'slide-down': 'slideDown 0.3s ease-in-out',
+        wave:         'wave 10s linear infinite',
+        float:        'float 4s ease-in-out infinite',
+      },
+
+      // z-index helper for sticky navbar
+      zIndex: {
+        sticky: '60',
       },
     },
   },
-  plugins: [require('@tailwindcss/forms')],
-};
+  plugins: [
+    require('@tailwindcss/forms'),
+  ],
+}

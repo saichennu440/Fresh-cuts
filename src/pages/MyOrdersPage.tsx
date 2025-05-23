@@ -200,13 +200,13 @@ const MyOrdersPage: React.FC = () => {
                   value={phoneInput}
                   onChange={(e) => setPhoneInput(e.target.value)}
                   placeholder="Enter your 10-digit phone number"
-                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-sea-500 focus:border-sea-500"
                 />
               </div>
             </div>
             <button
               onClick={verifyPhone}
-              className="px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition sm:whitespace-nowrap"
+              className="px-6 py-3 bg-sea-500 text-white rounded-md hover:bg-sea-600 transition sm:whitespace-nowrap"
             >
               View Orders
             </button>
@@ -236,7 +236,7 @@ const MyOrdersPage: React.FC = () => {
           </p>
           <Link
             to="/products"
-            className="px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition"
+            className="px-6 py-3 bg-sea-500 text-white rounded-md hover:bg-sea-600 transition"
           >
             Start Shopping
           </Link>

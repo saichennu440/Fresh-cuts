@@ -32,13 +32,13 @@ const Footer: React.FC = () => {
               Premium raw meat delivered fresh to your doorstep. Quality you can trust.
             </p>
             <div className="flex space-x-4">
-              <a href="#" className="text-white hover:text-primary-400 transition">
+              <a href="#" className="text-white hover:text-sea-400 transition">
                 <Facebook size={20} />
               </a>
-              <a href="#" className="text-white hover:text-primary-400 transition">
+              <a href="#" className="text-white hover:text-sea-400 transition">
                 <Instagram size={20} />
               </a>
-              <a href="#" className="text-white hover:text-primary-400 transition">
+              <a href="#" className="text-white hover:text-sea-400 transition">
                 <Twitter size={20} />
               </a>
             </div>

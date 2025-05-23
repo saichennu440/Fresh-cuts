@@ -74,7 +74,7 @@ const HeroCarousel: React.FC = () => {
                 </p>
                 <Link
                   to={item.buttonLink}
-                  className="px-8 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition transform hover:scale-105 font-semibold"
+                  className="px-8 py-3 bg-sea-500 hover:bg-sea-600 text-white rounded-md transition transform hover:scale-105 font-semibold"
                 >
                   {item.buttonText}
                 </Link>
