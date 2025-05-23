@@ -66,7 +66,7 @@ const WishlistPage: React.FC = () => {
           </p>
           <Link
             to="/products"
-            className="px-6 py-3 bg-sea-600 text-white rounded-md hover:bg-sea-700 transition inline-flex items-center"
+            className="px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition inline-flex items-center"
           >
             <ShoppingCart size={18} className="mr-2" />
             Start Shopping
@@ -91,7 +91,7 @@ const WishlistPage: React.FC = () => {
                   <div className="p-4">
                     <Link
                       to={`/products/${item.product_id}`}
-                      className="text-lg font-medium hover:text-sea-600 transition"
+                      className="text-lg font-medium hover:text-primary-600 transition"
                     >
                       {item.product.name}
                     </Link>
@@ -104,7 +104,7 @@ const WishlistPage: React.FC = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleAddToCart(item.product_id)}
-                        className="flex-1 flex items-center justify-center px-4 py-2 bg-sea-600 text-white rounded-md hover:bg-sea-700 transition text-sm"
+                        className="flex-1 flex items-center justify-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition text-sm"
                       >
                         <ShoppingCart size={16} className="mr-2" />
                         Add to Cart
@@ -125,7 +125,7 @@ const WishlistPage: React.FC = () => {
             <div className="mt-8 text-center">
               <Link
                 to="/products"
-                className="inline-flex items-center text-sea-600 hover:text-sea-700"
+                className="inline-flex items-center text-primary-600 hover:text-primary-700"
               >
                 <ArrowRight size={16} className="mr-2 rotate-180" />
                 Continue Shopping

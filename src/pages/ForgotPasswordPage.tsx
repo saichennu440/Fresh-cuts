@@ -50,14 +50,14 @@ const ForgotPasswordPage: React.FC = () => {
             type="submit"
             disabled={loading}
             className={`w-full py-2 rounded-md text-white font-medium ${
-              loading ? 'bg-gray-400' : 'bg-sea-500 hover:bg-sea-600'
+              loading ? 'bg-gray-400' : 'bg-primary-600 hover:bg-primary-700'
             }`}
           >
             {loading ? 'Sending…' : 'Send Reset Link'}
           </button>
         </form>
         <p className="mt-4 text-sm text-center">
-          <Link to="/login" className="text-sea-600 hover:underline">
+          <Link to="/login" className="text-primary-600 hover:underline">
             ← Back to Login
           </Link>
         </p>

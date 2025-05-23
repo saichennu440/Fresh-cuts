@@ -41,7 +41,7 @@ const categories: Category[] = [
   },
 ]
 
-const Categories: React.FC = () => (
+export const Categories: React.FC = () => (
   <section className="py-14 bg-sand-50">
     <h2 className="text-4xl font-semibold text-center mb-12 text-teal-800">Shop by Category</h2>
 
@@ -68,4 +68,4 @@ const Categories: React.FC = () => (
   </section>
 )
 
-export default Categories
+

@@ -77,7 +77,7 @@ const CartPage: React.FC = () => {
           </p>
           <Link
             to="/products"
-            className="px-6 py-3 bg-sea-500 text-white rounded-md hover:bg-sea-600 transition inline-flex items-center"
+            className="px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition inline-flex items-center"
           >
             <ShoppingBag size={18} className="mr-2" />
             Continue Shopping
@@ -104,7 +104,7 @@ const CartPage: React.FC = () => {
                       <div className="flex-grow">
                         <Link 
                           to={`/products/${item.product_id}`} 
-                          className="text-lg font-medium hover:text-sea-600 transition"
+                          className="text-lg font-medium hover:text-primary-600 transition"
                         >
                           {item.product.name}
                         </Link>
@@ -178,7 +178,7 @@ const CartPage: React.FC = () => {
               
               <button
                 onClick={handleCheckout}
-                className="w-full mt-6 px-6 py-3 bg-sea-500 text-white rounded-md hover:bg-sea-600 transition flex items-center justify-center"
+                className="w-full mt-6 px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition flex items-center justify-center"
               >
                 Proceed to Checkout
                 <ArrowRight size={18} className="ml-2" />
@@ -187,7 +187,7 @@ const CartPage: React.FC = () => {
               <div className="mt-6">
                 <Link
                   to="/products"
-                  className="text--500 hover:text-sea-700 flex items-center justify-center"
+                  className="text-primary-600 hover:text-primary-700 flex items-center justify-center"
                 >
                   <ArrowRight size={16} className="mr-2 rotate-180" />
                   Continue Shopping

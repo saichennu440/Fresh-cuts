@@ -108,7 +108,7 @@ const FeaturedProducts: React.FC = () => {
               </Link>
               <div className="p-4">
                 <Link to={`/products/${product.id}`}>
-                  <h3 className="text-lg font-semibold mb-2 hover:text-sea-600 transition">
+                  <h3 className="text-lg font-semibold mb-2 hover:text-primary-600 transition">
                     {product.name}
                   </h3>
                 </Link>
@@ -133,7 +133,7 @@ const FeaturedProducts: React.FC = () => {
                     </button>
                     <button
                       onClick={() => handleAddToCart(product)}
-                      className="p-2 rounded-full text-sea-600 bg-sea-50 hover:bg-sea-100 transition"
+                      className="p-2 rounded-full text-primary-600 bg-primary-50 hover:bg-primary-100 transition"
                       aria-label="Add to cart"
                     >
                       <ShoppingCart size={18} />
@@ -149,7 +149,7 @@ const FeaturedProducts: React.FC = () => {
       <div className="text-center mt-12">
         <Link
           to="/products"
-          className="inline-block px-6 py-3 bg-sea-500 hover:bg-sea-600 text-white rounded-md transition transform hover:scale-105 font-semibold"
+          className="inline-block px-6 py-3 bg-primary-600 hover:bg-primary-700 text-white rounded-md transition transform hover:scale-105 font-semibold"
         >
           View All Products
         </Link>

@@ -158,7 +158,7 @@ const ProductDetailPage: React.FC = () => {
         </p>
         <Link
           to="/products"
-          className="inline-flex items-center px-4 py-2 bg-sea-500 text-white rounded-md hover:bg-sea-600 transition"
+          className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition"
         >
           <ArrowLeft size={16} className="mr-2" />
           Back to Products
@@ -171,13 +171,13 @@ const ProductDetailPage: React.FC = () => {
     <div className="container mx-auto px-4 py-24">
       {/* Breadcrumb */}
       <div className="flex items-center mb-6 text-sm">
-        <Link to="/" className="text-gray-500 hover:text-sea-600">
+        <Link to="/" className="text-gray-500 hover:text-primary-600">
           Home
         </Link>
         <span className="mx-2">/</span>
         <Link
           to={product.category === 'pickle' ? '/pickles' : '/products'}
-          className="text-gray-500 hover:text-sea-600"
+          className="text-gray-500 hover:text-primary-600"
         >
           {product.category === 'pickle' ? 'Pickles' : 'Products'}
         </Link>
@@ -220,7 +220,7 @@ const ProductDetailPage: React.FC = () => {
                   onClick={() => setSelectedOption(opt)}
                   className={`px-4 py-2 border rounded-full transition ${
                     selectedOption?.id === opt.id
-                      ? 'border-sea-600 bg-sea-50'
+                      ? 'border-primary-600 bg-primary-50'
                       : 'border-gray-300'
                   }`}
                 >
@@ -270,7 +270,7 @@ const ProductDetailPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row gap-4 mb-8">
             <button
               onClick={handleAddToCart}
-              className="flex-1 flex items-center justify-center px-6 py-3 bg-sea-500 text-white rounded-md"
+              className="flex-1 flex items-center justify-center px-6 py-3 bg-primary-600 text-white rounded-md"
             >
               <ShoppingCart size={18} className="mr-2" /> Add to Cart
             </button>

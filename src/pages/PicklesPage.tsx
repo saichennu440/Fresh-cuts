@@ -74,7 +74,7 @@ const PicklesPage: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search pickles..."
-              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-sea-500 focus:border-sea-500"
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             />
           </div>
 
@@ -83,7 +83,7 @@ const PicklesPage: React.FC = () => {
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="block w-full px-3 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-sea-500 focus:border-sea-500"
+              className="block w-full px-3 py-2 border border-gray-300 rounded-md appearance-none focus:outline-none focus:ring-primary-500 focus:border-primary-500"
             >
               <option value="newest">Newest First</option>
               <option value="price-low">Price: Low to High</option>
@@ -139,7 +139,7 @@ const PicklesPage: React.FC = () => {
               setSearchTerm('');
               setSortBy('newest');
             }}
-            className="px-4 py-2 bg-sea-500 text-white rounded-md hover:bg-sea-600 transition"
+            className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition"
           >
             Reset Filters
           </button>

@@ -73,20 +73,20 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </button>
             <button
               onClick={handleAddToCart}
-              className="p-2 rounded-full text-sea-500 bg-white/90 hover:text-sea-600 transition"
+              className="p-2 rounded-full text-primary-600 bg-white/90 hover:text-primary-700 transition"
               aria-label="Add to cart"
             >
               <ShoppingCart size={18} />
             </button>
           </div>
           {product.is_featured && (
-            <div className="absolute top-2 left-2 bg-sea-400 text-white text-xs px-2 py-1 rounded">
+            <div className="absolute top-2 left-2 bg-accent-500 text-white text-xs px-2 py-1 rounded">
               Featured
             </div>
           )}
         </div>
         <div className="p-4">
-          <h3 className="text-lg font-semibold mb-2 hover:text-sea-500 transition">
+          <h3 className="text-lg font-semibold mb-2 hover:text-primary-600 transition">
             {product.name}
           </h3>
           <p className="text-gray-600 text-sm mb-4 line-clamp-2">

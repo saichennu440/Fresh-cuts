@@ -79,7 +79,7 @@ const OrderSuccessPage: React.FC = () => {
     <div className="container mx-auto px-4 py-24">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-md p-8 text-center">
         <div className="flex justify-center mb-6">
-          <CheckCircle size={80} className="text-sea-500" />
+          <CheckCircle size={80} className="text-primary-500" />
         </div>
 
         <h1 className="text-3xl font-bold mb-4">Thank You for Your Order!</h1>
@@ -101,9 +101,9 @@ const OrderSuccessPage: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-sea-50 p-4 rounded-md mb-8">
+        <div className="bg-primary-50 p-4 rounded-md mb-8">
           {notificationSent ? (
-            <p className="text-sea-800">
+            <p className="text-primary-800">
               ✅ A confirmation message has been sent to your WhatsApp number.
             </p>
           ) : sendingError ? (
@@ -111,7 +111,7 @@ const OrderSuccessPage: React.FC = () => {
               ❌ Failed to send confirmation: {sendingError}
             </p>
           ) : (
-            <p className="text-sea-800">
+            <p className="text-primary-800">
               ⏳ Sending WhatsApp confirmation...
             </p>
           )}
@@ -120,7 +120,7 @@ const OrderSuccessPage: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-center gap-4">
           <Link
             to="/my-orders"
-            className="px-6 py-3 bg-sea-500 text-white rounded-md hover:bg-sea-600 transition flex items-center justify-center"
+            className="px-6 py-3 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition flex items-center justify-center"
           >
             <List size={18} className="mr-2" />
             View My Orders
